@@ -2,6 +2,10 @@
 
 An interactive visual guide to Dynamics 365 Contact Center architecture, showing relationships between channels, workstreams, queues, and agents.
 
+## 🌐 Live Demo
+
+**View the interactive website**: [https://satyans.github.io/D365-CC-architecture-map/](https://satyans.github.io/D365-CC-architecture-map/)
+
 ## 📋 Overview
 
 This repository contains comprehensive documentation and interactive visualizations of the D365 Contact Center architecture, including:
@@ -35,18 +39,22 @@ This repository contains comprehensive documentation and interactive visualizati
 
 ## 📁 Files
 
-- **`d365-architecture.html`** - Interactive website with full architecture visualization
+- **`index.html`** - Interactive website with full architecture visualization (hosted on GitHub Pages)
 - **`D365-Contact-Center-Architecture-Map.md`** - Complete documentation in markdown
 - **`D365-Contact-Center-Architecture-Map.pdf`** - PDF version for offline reference
 - **`convert_to_pdf.py`** - Python script to regenerate PDF from markdown
 
 ## 🚀 Quick Start
 
-### View the Interactive Website
-1. Open `d365-architecture.html` in any modern web browser
-2. Use the Expand/Collapse buttons to navigate sections
-3. Try the search box to find specific topics
-4. Hover over cards and sections to see Fluent Design effects
+### View Online (Recommended)
+Visit the live website: **[https://satyans.github.io/D365-CC-architecture-map/](https://satyans.github.io/D365-CC-architecture-map/)**
+
+### View Locally
+1. Clone the repository: `git clone https://github.com/satyans/D365-CC-architecture-map.git`
+2. Open `index.html` in any modern web browser
+3. Use the Expand/Collapse buttons to navigate sections
+4. Try the search box to find specific topics
+5. Hover over cards and sections to see Fluent Design effects
 
 ### Keyboard Shortcuts
 - **Ctrl/Cmd + E** - Expand all sections
