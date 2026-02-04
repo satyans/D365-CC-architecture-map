@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D365 Contact Center Architecture - Visual Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .infographic {
+            width: 1400px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 30px;
+            border-bottom: 4px solid #0078d4;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            color: #0078d4;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: #605e5c;
+            font-weight: 500;
+        }
+
+        .main-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .component {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .component-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            margin: 0 10px;
+            transition: transform 0.3s ease;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .component-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .component-icon {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+        }
+
+        .component-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .component-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .component-types {
+            font-size: 0.75rem;
+            margin-top: 10px;
+            opacity: 0.85;
+            line-height: 1.4;
+        }
+
+        .arrow {
+            position: absolute;
+            top: 50%;
+            font-size: 3rem;
+            color: #0078d4;
+            font-weight: bold;
+            z-index: 1;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .arrow1 { left: 19%; }
+        .arrow2 { left: 39%; }
+        .arrow3 { left: 59%; }
+        .arrow4 { left: 79%; }
+
+        .relationships-section {
+            margin-top: 50px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 40px;
+            border-radius: 20px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: #0078d4;
+            margin-bottom: 30px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .relationships-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .relationship-card {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-left: 6px solid #0078d4;
+        }
+
+        .relationship-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0078d4;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .relationship-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .rel-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .rel-arrow {
+            font-size: 1.8rem;
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .rel-badge {
+            background: #0078d4;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .relationship-details {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .forward-reverse {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .forward, .reverse {
+            flex: 1;
+        }
+
+        .forward-label, .reverse-label {
+            font-weight: 700;
+            color: #0078d4;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+
+        .forward-label::before {
+            content: "⬇ ";
+        }
+
+        .reverse-label::before {
+            content: "⬆ ";
+        }
+
+        .constraints-section {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe0b2 100%);
+            padding: 30px;
+            border-radius: 16px;
+            border: 3px solid #ff9800;
+        }
+
+        .constraints-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .constraint-item {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 4px solid #ff9800;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .constraint-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .legend {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+        }
+
+        .legend-channels { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .legend-forward { color: #0078d4; font-size: 1.5rem; }
+        .legend-reverse { color: #107c10; font-size: 1.5rem; }
+        .legend-constraint { background: #ff9800; }
+
+        .key-points {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 30px;
+            border-radius: 16px;
+        }
+
+        .key-points-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .key-point {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .key-point-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .key-point-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0078d4;
+            margin-bottom: 5px;
+        }
+
+        .key-point-label {
+            font-size: 0.9rem;
+            color: #605e5c;
+            font-weight: 600;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            color: #605e5c;
+            font-size: 0.9rem;
+        }
+
+        .footer a {
+            color: #0078d4;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="infographic">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏗️ Dynamics 365 Contact Center Architecture</h1>
+            <p>Complete Visual Guide: Components, Relationships & Flow</p>
+        </div>
+
+        <!-- Main Architecture Flow -->
+        <div class="main-flow">
+            <div class="component">
+                <div class="component-box">
+                    <div class="component-icon">📱</div>
+                    <div class="component-title">CHANNELS</div>
+                    <div class="component-subtitle">Customer Entry Points</div>
+                    <div class="component-types">Voice • Chat • SMS<br>Social • Teams • Records</div>
+                </div>
+            </div>
+            <span class="arrow arrow1">→</span>
+
+            <div class="component">
+                <div class="component-box">
+                    <div class="component-icon">🔄</div>
+                    <div class="component-title">WORKSTREAMS</div>
+                    <div class="component-subtitle">Routing Container</div>
+                    <div class="component-types">Messaging • Voice<br>Record • Push/Pick</div>
+                </div>
+            </div>
+            <span class="arrow arrow2">→</span>
+
+            <div class="component">
+                <div class="component-box">
+                    <div class="component-icon">🎯</div>
+                    <div class="component-title">ROUTING</div>
+                    <div class="component-subtitle">Intelligent Rules</div>
+                    <div class="component-types">Classification<br>Route-to-Queue • Fallback</div>
+                </div>
+            </div>
+            <span class="arrow arrow3">→</span>
+
+            <div class="component">
+                <div class="component-box">
+                    <div class="component-icon">📥</div>
+                    <div class="component-title">QUEUES</div>
+                    <div class="component-subtitle">Work Distribution</div>
+                    <div class="component-types">Messaging • Voice • Record<br>Assignment Methods</div>
+                </div>
+            </div>
+            <span class="arrow arrow4">→</span>
+
+            <div class="component">
+                <div class="component-box">
+                    <div class="component-icon">👥</div>
+                    <div class="component-title">AGENTS</div>
+                    <div class="component-subtitle">Service Reps</div>
+                    <div class="component-types">Skills • Capacity<br>Presence • Multi-Queue</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relationships Section -->
+        <div class="relationships-section">
+            <div class="section-title">🔗 Key Relationships: Forward & Reverse Flow</div>
+
+            <div class="relationships-grid">
+                <!-- Relationship 1 -->
+                <div class="relationship-card">
+                    <div class="relationship-title">
+                        <span>1️⃣</span> Channel ↔ Workstream
+                    </div>
+                    <div class="relationship-flow">
+                        <div class="rel-box">Channel</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-box">Workstream</div>
+                        <div class="rel-badge">Many : One</div>
+                    </div>
+                    <div class="forward-reverse">
+                        <div class="forward">
+                            <div class="forward-label">Forward</div>
+                            Multiple channels (same type) → 1 workstream
+                        </div>
+                        <div class="reverse">
+                            <div class="reverse-label">Reverse</div>
+                            1 workstream ← Multiple channels
+                        </div>
+                    </div>
+                    <div class="relationship-details">
+                        <strong>Example:</strong> 3 chat channels can all route to 1 messaging workstream
+                    </div>
+                </div>
+
+                <!-- Relationship 2 -->
+                <div class="relationship-card">
+                    <div class="relationship-title">
+                        <span>2️⃣</span> Phone # ↔ Workstream
+                    </div>
+                    <div class="relationship-flow">
+                        <div class="rel-box">Phone #</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-box">Voice Channel</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-box">Workstream</div>
+                        <div class="rel-badge">Many : One</div>
+                    </div>
+                    <div class="forward-reverse">
+                        <div class="forward">
+                            <div class="forward-label">Forward</div>
+                            1 phone # → 1 voice channel → 1 workstream
+                        </div>
+                        <div class="reverse">
+                            <div class="reverse-label">Reverse</div>
+                            1 workstream ← Multiple voice channels (multiple phone #s)
+                        </div>
+                    </div>
+                    <div class="relationship-details">
+                        <strong>Use Case:</strong> Multilingual support - Spanish #, German #, French # in 1 workstream
+                    </div>
+                </div>
+
+                <!-- Relationship 3 -->
+                <div class="relationship-card">
+                    <div class="relationship-title">
+                        <span>3️⃣</span> Workstream ↔ Queue
+                    </div>
+                    <div class="relationship-flow">
+                        <div class="rel-box">Workstream</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-box">Queues</div>
+                        <div class="rel-badge">One : Many</div>
+                    </div>
+                    <div class="forward-reverse">
+                        <div class="forward">
+                            <div class="forward-label">Forward</div>
+                            1 workstream → Multiple queues (via routing rules)
+                        </div>
+                        <div class="reverse">
+                            <div class="reverse-label">Reverse</div>
+                            Multiple workstreams → 1 queue (same type)
+                        </div>
+                    </div>
+                    <div class="relationship-details">
+                        <strong>Example:</strong> "VIP Voice Queue" receives from "Premium Support" & "Executive Support" workstreams
+                    </div>
+                </div>
+
+                <!-- Relationship 4 -->
+                <div class="relationship-card">
+                    <div class="relationship-title">
+                        <span>4️⃣</span> Queue ↔ Agent
+                    </div>
+                    <div class="relationship-flow">
+                        <div class="rel-box">Queue</div>
+                        <div class="rel-arrow">↔</div>
+                        <div class="rel-box">Agents</div>
+                        <div class="rel-badge">Many : Many</div>
+                    </div>
+                    <div class="forward-reverse">
+                        <div class="forward">
+                            <div class="forward-label">Forward</div>
+                            1 queue → Multiple agents (members)
+                        </div>
+                        <div class="reverse">
+                            <div class="reverse-label">Reverse</div>
+                            1 agent → Multiple queues (membership)
+                        </div>
+                    </div>
+                    <div class="relationship-details">
+                        <strong>Example:</strong> Agent Sarah is member of "Voice Queue", "Chat Queue", and "VIP Queue"
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Critical Constraints -->
+        <div class="constraints-section">
+            <div class="section-title">⚠️ Critical Constraints & Rules</div>
+            <div class="constraints-grid">
+                <div class="constraint-item">
+                    <div class="constraint-icon">🔒</div>
+                    <strong>Type Matching:</strong> Queue type MUST match workstream channel type (Voice→Voice, Messaging→Messaging, Record→Record)
+                </div>
+                <div class="constraint-item">
+                    <div class="constraint-icon">🚫</div>
+                    <strong>No Cross-Type:</strong> Cannot transfer chat to voice queue or voice to messaging queue
+                </div>
+                <div class="constraint-item">
+                    <div class="constraint-icon">📞</div>
+                    <strong>Voice Push Only:</strong> Voice workstreams MUST use Push mode (no Pick mode allowed)
+                </div>
+                <div class="constraint-item">
+                    <div class="constraint-icon">🔐</div>
+                    <strong>Mode Locked:</strong> Work distribution mode (Push/Pick) CANNOT be changed after workstream creation
+                </div>
+                <div class="constraint-item">
+                    <div class="constraint-icon">☎️</div>
+                    <strong>Phone Unique:</strong> Each phone number can only be in ONE voice channel (but workstream can have many)
+                </div>
+                <div class="constraint-item">
+                    <div class="constraint-icon">✅</div>
+                    <strong>Unified Routing:</strong> Must be enabled for Record workstreams to function
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box legend-channels"></div>
+                <span>Components</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-forward">→</div>
+                <span>Forward Flow (Top-Down)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-reverse">←</div>
+                <span>Reverse Flow (Bottom-Up)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box legend-constraint"></div>
+                <span>Constraints</span>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <strong>Dynamics 365 Contact Center Architecture Map</strong><br>
+            Source: <a href="https://learn.microsoft.com/en-us/dynamics365/contact-center/" target="_blank">Microsoft Learn Documentation</a> |
+            Interactive Site: <a href="https://satyans.github.io/D365-CC-architecture-map/" target="_blank">satyans.github.io/D365-CC-architecture-map</a><br>
+            <small>Version 2.0 | February 2026 | Created by Satyan S</small>
+        </div>
+    </div>
+</body>
+</html>

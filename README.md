@@ -40,14 +40,20 @@ This repository contains comprehensive documentation and interactive visualizati
 ## 📁 Files
 
 - **`index.html`** - Interactive website with full architecture visualization (hosted on GitHub Pages)
+- **`architecture-infographic.html`** - Single-page visual infographic summarizing architecture and relationships
+- **`D365-Contact-Center-Architecture-Infographic.png`** - High-resolution infographic image (793 KB)
 - **`D365-Contact-Center-Architecture-Map.md`** - Complete documentation in markdown
 - **`D365-Contact-Center-Architecture-Map.pdf`** - PDF version for offline reference
 - **`convert_to_pdf.py`** - Python script to regenerate PDF from markdown
+- **`html_to_png.py`** - Python script to convert HTML infographic to PNG
 
 ## 🚀 Quick Start
 
 ### View Online (Recommended)
 Visit the live website: **[https://satyans.github.io/D365-CC-architecture-map/](https://satyans.github.io/D365-CC-architecture-map/)**
+
+### View the Infographic
+Quick visual summary: **[Architecture Infographic](./D365-Contact-Center-Architecture-Infographic.png)**
 
 ### View Locally
 1. Clone the repository: `git clone https://github.com/satyans/D365-CC-architecture-map.git`
