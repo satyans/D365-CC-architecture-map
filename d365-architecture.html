@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamics 365 Contact Center - Architecture Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0099bc;
+            --text-color: #201f1e;
+            --text-secondary: #605e5c;
+            --bg-color: #ffffff;
+            --bg-secondary: #faf9f8;
+            --bg-tertiary: #f3f2f1;
+            --border-color: #edebe9;
+            --success-color: #107c10;
+            --card-shadow: 0 3.2px 7.2px rgba(0, 0, 0, 0.132), 0 0.6px 1.8px rgba(0, 0, 0, 0.108);
+            --card-shadow-hover: 0 6.4px 14.4px rgba(0, 0, 0, 0.132), 0 1.2px 3.6px rgba(0, 0, 0, 0.108);
+            --acrylic-base: rgba(243, 242, 241, 0.9);
+            --acrylic-tint: rgba(255, 255, 255, 0.7);
+            --reveal-glow: rgba(0, 120, 212, 0.4);
+        }
+
+        @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+            :root {
+                --acrylic-blur: blur(40px);
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: #f0f0f0;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(0, 120, 212, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(16, 110, 190, 0.1) 0%, transparent 50%);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                linear-gradient(135deg, transparent 0%, rgba(0, 120, 212, 0.03) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4.8px 14.4px rgba(0, 0, 0, 0.18), 0 25.6px 57.6px rgba(0, 0, 0, 0.22);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls {
+            background: var(--acrylic-base);
+            backdrop-filter: var(--acrylic-blur);
+            -webkit-backdrop-filter: var(--acrylic-blur);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .controls:hover {
+            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, 0.132), 0 0.3px 0.9px rgba(0, 0, 0, 0.108);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            box-shadow: 0 3.2px 7.2px rgba(0, 0, 0, 0.132), 0 0.6px 1.8px rgba(0, 0, 0, 0.108);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, 0.132), 0 0.3px 0.9px rgba(0, 0, 0, 0.108);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--primary-color);
+            box-shadow: 0 3.2px 7.2px rgba(0, 0, 0, 0.132), 0 0.6px 1.8px rgba(0, 0, 0, 0.108);
+            transform: translateY(-1px);
+        }
+
+        .section {
+            background: var(--acrylic-base);
+            backdrop-filter: var(--acrylic-blur);
+            -webkit-backdrop-filter: var(--acrylic-blur);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                var(--reveal-glow) 0%,
+                transparent 40%);
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .section:hover::before {
+            opacity: 0.15;
+        }
+
+        .section:hover {
+            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg,
+                rgba(0, 120, 212, 0.08) 0%,
+                transparent 100%);
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .section-header:hover::after {
+            opacity: 1;
+        }
+
+        .section-header:active {
+            transform: scale(0.995);
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: var(--primary-color);
+            position: relative;
+            z-index: 1;
+        }
+
+        .section.expanded .section-icon {
+            transform: rotate(180deg);
+        }
+
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+                        padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-color);
+        }
+
+        .section.expanded .section-content {
+            max-height: 5000px;
+            padding: 2rem;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .subsection {
+            margin-bottom: 2rem;
+        }
+
+        .subsection h3 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .subsection h4 {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        .diagram {
+            background: #2d2d2d;
+            color: #00ff00;
+            padding: 2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .diagram pre {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            white-space: pre;
+            margin: 0;
+        }
+
+        /* Modern Flow Diagram Styles */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .flow-layer {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .flow-layer-title {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0, 120, 212, 0.3);
+        }
+
+        .flow-items {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .flow-node {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            min-width: 140px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .flow-node:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 24px rgba(0, 120, 212, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .flow-node-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .flow-node-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .flow-node-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .flow-arrow {
+            text-align: center;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin: 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .flow-connector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: -0.5rem 0;
+        }
+
+        .flow-connector svg {
+            width: 100%;
+            height: 60px;
+        }
+
+        /* Special node types */
+        .flow-node.primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+
+        .flow-node.primary .flow-node-title,
+        .flow-node.primary .flow-node-subtitle {
+            color: white;
+        }
+
+        .flow-node.secondary {
+            background: linear-gradient(135deg, #50e6ff 0%, #0099bc 100%);
+            color: white;
+            border-color: #0099bc;
+        }
+
+        .flow-node.secondary .flow-node-title,
+        .flow-node.secondary .flow-node-subtitle {
+            color: white;
+        }
+
+        .flow-node.success {
+            background: linear-gradient(135deg, #92c353 0%, #107c10 100%);
+            color: white;
+            border-color: #107c10;
+        }
+
+        .flow-node.success .flow-node-title,
+        .flow-node.success .flow-node-subtitle {
+            color: white;
+        }
+
+        /* Relationship visual styles */
+        .relationship-visual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .rel-item {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+            font-weight: 600;
+            color: var(--primary-color);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .rel-arrow {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .rel-type {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .info-card {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                rgba(0, 120, 212, 0.1) 0%,
+                transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .info-card:hover::before {
+            opacity: 1;
+        }
+
+        .info-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 6.4px 14.4px rgba(0, 0, 0, 0.132), 0 1.2px 3.6px rgba(0, 0, 0, 0.108);
+            border-color: var(--primary-color);
+        }
+
+        .info-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .info-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .info-list li:before {
+            content: "▸";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .relationship-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+
+        .relationship-box strong {
+            color: var(--secondary-color);
+        }
+
+        .constraint-box {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left: 4px solid #ff9800;
+            padding: 1rem 1.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+        }
+
+        .flow-step {
+            background: var(--bg-secondary);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            border-left: 4px solid var(--success-color);
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .flow-step:before {
+            content: "↓";
+            position: absolute;
+            left: 1rem;
+            color: var(--success-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--bg-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        .footer {
+            background: var(--bg-color);
+            padding: 2rem;
+            margin-top: 3rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            text-align: center;
+        }
+
+        .footer h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+
+        .sources {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sources li {
+            margin: 0.5rem 0;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 0.25rem;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid #fbc02d;
+            margin: 1.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .diagram pre {
+                font-size: 0.7rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-color);
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .search-box input:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            border-width: 2px;
+            padding: calc(0.75rem - 1px) calc(1rem - 1px);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--success-color);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>Dynamics 365 Contact Center</h1>
+            <p>Interactive Architecture Map - Configuration & Relationships</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <button class="btn btn-primary" onclick="expandAll()">
+                <span>📂</span> Expand All
+            </button>
+            <button class="btn btn-primary" onclick="collapseAll()">
+                <span>📁</span> Collapse All
+            </button>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search architecture components..." onkeyup="searchContent()">
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section expanded" id="section-overview">
+            <div class="section-header" onclick="toggleSection('overview')">
+                <h2>📋 Architecture Overview</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="highlight">
+                    <h3>Core Architecture Flow</h3>
+                    <p style="font-size: 1.2rem; text-align: center; margin: 1rem 0;">
+                        <strong>CHANNELS → WORKSTREAMS → ROUTING RULES → QUEUES → AGENTS</strong>
+                    </p>
+                    <p>Each layer adds intelligence, context, and control to ensure optimal customer service delivery through AI-powered routing and intelligent work distribution.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3>Key Layers</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>🌐 Channels</h4>
+                            <p>Entry points for customer engagement across multiple communication mediums</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🔄 Workstreams</h4>
+                            <p>Containers that enrich, route, and configure work item behavior</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>📍 Routing Rules</h4>
+                            <p>Intelligent classification and route-to-queue decision logic</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>📥 Queues</h4>
+                            <p>Collections that organize work items for distribution</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>👥 Agents</h4>
+                            <p>Service representatives who handle customer interactions</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🤖 AI Features</h4>
+                            <p>Copilot assistance, sentiment analysis, and intelligent routing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hierarchy Diagram Section -->
+        <div class="section expanded" id="section-hierarchy">
+            <div class="section-header" onclick="toggleSection('hierarchy')">
+                <h2>🗺️ Visual Architecture Flow</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="flow-diagram">
+                    <!-- Layer 1: Channels -->
+                    <div class="flow-layer">
+                        <div class="flow-layer-title">📱 CHANNELS - Customer Engagement Layer</div>
+                        <div class="flow-items">
+                            <div class="flow-node primary">
+                                <span class="flow-node-icon">📞</span>
+                                <div class="flow-node-title">Voice</div>
+                                <div class="flow-node-subtitle">PSTN Calls</div>
+                            </div>
+                            <div class="flow-node primary">
+                                <span class="flow-node-icon">💬</span>
+                                <div class="flow-node-title">Chat</div>
+                                <div class="flow-node-subtitle">Live Chat</div>
+                            </div>
+                            <div class="flow-node primary">
+                                <span class="flow-node-icon">📱</span>
+                                <div class="flow-node-title">SMS</div>
+                                <div class="flow-node-subtitle">Text Messages</div>
+                            </div>
+                            <div class="flow-node primary">
+                                <span class="flow-node-icon">📲</span>
+                                <div class="flow-node-title">Social</div>
+                                <div class="flow-node-subtitle">FB/WhatsApp</div>
+                            </div>
+                            <div class="flow-node primary">
+                                <span class="flow-node-icon">👔</span>
+                                <div class="flow-node-title">Teams</div>
+                                <div class="flow-node-subtitle">MS Teams</div>
+                            </div>
+                            <div class="flow-node primary">
+                                <span class="flow-node-icon">📋</span>
+                                <div class="flow-node-title">Records</div>
+                                <div class="flow-node-subtitle">Cases/Emails</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <!-- Layer 2: Workstreams -->
+                    <div class="flow-layer">
+                        <div class="flow-layer-title">🔄 WORKSTREAMS - Routing & Configuration Layer</div>
+                        <div class="flow-items">
+                            <div class="flow-node secondary">
+                                <span class="flow-node-icon">🔄</span>
+                                <div class="flow-node-title">Messaging Workstream</div>
+                                <div class="flow-node-subtitle">Chat, SMS, Social, Teams</div>
+                            </div>
+                            <div class="flow-node secondary">
+                                <span class="flow-node-icon">📞</span>
+                                <div class="flow-node-title">Voice Workstream</div>
+                                <div class="flow-node-subtitle">Phone Calls (Push Only)</div>
+                            </div>
+                            <div class="flow-node secondary">
+                                <span class="flow-node-icon">📝</span>
+                                <div class="flow-node-title">Record Workstream</div>
+                                <div class="flow-node-subtitle">Cases, Emails, Records</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <!-- Layer 3: Routing Rules -->
+                    <div class="flow-layer">
+                        <div class="flow-layer-title">🎯 ROUTING RULES - Intelligent Routing Layer</div>
+                        <div class="flow-items">
+                            <div class="flow-node">
+                                <span class="flow-node-icon">🏷️</span>
+                                <div class="flow-node-title">Classification Rules</div>
+                                <div class="flow-node-subtitle">Categorize & Add Context</div>
+                            </div>
+                            <div class="flow-node">
+                                <span class="flow-node-icon">🎯</span>
+                                <div class="flow-node-title">Route-to-Queue Rules</div>
+                                <div class="flow-node-subtitle">Condition-Based Routing</div>
+                            </div>
+                            <div class="flow-node">
+                                <span class="flow-node-icon">🛡️</span>
+                                <div class="flow-node-title">Fallback Queue</div>
+                                <div class="flow-node-subtitle">Safety Net</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <!-- Layer 4: Queues -->
+                    <div class="flow-layer">
+                        <div class="flow-layer-title">📥 QUEUES - Work Distribution Layer</div>
+                        <div class="flow-items">
+                            <div class="flow-node secondary">
+                                <span class="flow-node-icon">📥</span>
+                                <div class="flow-node-title">Messaging Queue</div>
+                                <div class="flow-node-subtitle">Chat, SMS, Social</div>
+                            </div>
+                            <div class="flow-node secondary">
+                                <span class="flow-node-icon">📞</span>
+                                <div class="flow-node-title">Voice Queue</div>
+                                <div class="flow-node-subtitle">Phone Calls</div>
+                            </div>
+                            <div class="flow-node secondary">
+                                <span class="flow-node-icon">📋</span>
+                                <div class="flow-node-title">Record Queue</div>
+                                <div class="flow-node-subtitle">Cases & Emails</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <!-- Layer 5: Assignment -->
+                    <div class="flow-layer">
+                        <div class="flow-layer-title">⚙️ ASSIGNMENT ALGORITHM - Evaluation Layer</div>
+                        <div class="flow-items">
+                            <div class="flow-node">
+                                <span class="flow-node-icon">🎯</span>
+                                <div class="flow-node-title">Skills</div>
+                                <div class="flow-node-subtitle">Matching</div>
+                            </div>
+                            <div class="flow-node">
+                                <span class="flow-node-icon">🟢</span>
+                                <div class="flow-node-title">Presence</div>
+                                <div class="flow-node-subtitle">Availability</div>
+                            </div>
+                            <div class="flow-node">
+                                <span class="flow-node-icon">⚡</span>
+                                <div class="flow-node-title">Capacity</div>
+                                <div class="flow-node-subtitle">Workload</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flow-arrow">⬇</div>
+
+                    <!-- Layer 6: Agents -->
+                    <div class="flow-layer">
+                        <div class="flow-layer-title">👥 AGENTS - Service Representative Layer</div>
+                        <div class="flow-items">
+                            <div class="flow-node success">
+                                <span class="flow-node-icon">👤</span>
+                                <div class="flow-node-title">Agents / Representatives</div>
+                                <div class="flow-node-subtitle">Handle Customer Interactions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>📊 Assignment Methods</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>⚡ Highest Capacity</h4>
+                            <p>Routes to agent with most available capacity</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🔄 Round Robin</h4>
+                            <p>Rotates assignments in order</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>😴 Least Active</h4>
+                            <p>Routes to least recently active agent</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>⚙️ Custom</h4>
+                            <p>Rule-based custom assignment</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Relationships Section - Moved here -->
+        <div class="section" id="section-relationships">
+            <div class="section-header" onclick="toggleSection('relationships')">
+                <h2>🔗 Key Relationships</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>⬇️ Top-Down Relationships (Architecture Flow)</h3>
+
+                    <div class="relationship-visual">
+                        <div class="rel-item">Channel</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-item">Workstream</div>
+                        <div class="rel-type">Many-to-One</div>
+                    </div>
+                    <div class="relationship-box">
+                        <h4>1. Channel → Workstream (Many-to-One)</h4>
+                        <p><strong>Forward:</strong> Multiple channels of the SAME type can share one workstream</p>
+                        <p><strong>Example:</strong> 3 chat channels → 1 messaging workstream</p>
+                        <p><strong>Reverse:</strong> ✅ A workstream can have MULTIPLE channels attached (of the same type)</p>
+                    </div>
+
+                    <div class="relationship-visual">
+                        <div class="rel-item">Phone Number</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-item">Voice Channel</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-item">Workstream</div>
+                        <div class="rel-type">Many-to-One</div>
+                    </div>
+                    <div class="relationship-box">
+                        <h4>2. Phone Number → Voice Channel → Workstream (Many-to-One)</h4>
+                        <p><strong>Forward:</strong> Each phone number is associated with exactly ONE voice channel, which belongs to ONE workstream</p>
+                        <p><strong>Constraint:</strong> Phone numbers must have inbound calls enabled and cannot be shared across workstreams</p>
+                        <p><strong>Reverse:</strong> ✅ A workstream CAN have MULTIPLE voice channels, each with a different phone number</p>
+                        <p><strong>Use Case:</strong> Multilingual support - configure multiple voice channels with different phone numbers for different languages (e.g., Spanish number, German number, French number all in one workstream)</p>
+                    </div>
+
+                    <div class="relationship-visual">
+                        <div class="rel-item">Workstream</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-item">Queues</div>
+                        <div class="rel-type">One-to-Many</div>
+                    </div>
+                    <div class="relationship-box">
+                        <h4>3. Workstream → Queues (One-to-Many)</h4>
+                        <p><strong>Forward:</strong> One workstream can route to multiple queues via route-to-queue rules</p>
+                        <p><strong>Required:</strong> Must have one fallback queue as safety net</p>
+                        <p><strong>Reverse:</strong> ✅ A queue CAN receive work from MULTIPLE workstreams (of matching channel type)</p>
+                        <p><strong>Example:</strong> A "VIP Voice Queue" can receive calls from both "Premium Support Workstream" and "Executive Support Workstream"</p>
+                    </div>
+
+                    <div class="relationship-visual">
+                        <div class="rel-item">Queue</div>
+                        <div class="rel-arrow">→</div>
+                        <div class="rel-item">Agents</div>
+                        <div class="rel-type">Many-to-Many</div>
+                    </div>
+                    <div class="relationship-box">
+                        <h4>4. Queue → Agents (Many-to-Many)</h4>
+                        <p><strong>Forward:</strong> Queues can have multiple agents as members</p>
+                        <p><strong>Reverse:</strong> ✅ Agents CAN be members of MULTIPLE queues</p>
+                        <p><strong>Distribution:</strong> Based on assignment method and availability</p>
+                        <p><strong>Example:</strong> Agent John can be in "Voice Queue", "Chat Queue", and "VIP Queue" simultaneously</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>⬆️ Bottom-Up Relationships (Reverse Flow)</h3>
+
+                    <div class="relationship-box">
+                        <h4>Agent Perspective:</h4>
+                        <ul class="info-list">
+                            <li>✅ An agent can be a member of <strong>multiple queues</strong></li>
+                            <li>✅ An agent receives work from <strong>all queues they belong to</strong></li>
+                            <li>✅ Work assignment depends on capacity, skills, and presence across all queues</li>
+                            <li>📊 Agents can view work items from all their queues in the Omnichannel Agent Dashboard</li>
+                            <li><strong>Example:</strong> Agent Sarah in "Voice Queue", "VIP Chat Queue", and "Email Queue"</li>
+                        </ul>
+                    </div>
+
+                    <div class="relationship-box">
+                        <h4>Queue Perspective:</h4>
+                        <ul class="info-list">
+                            <li>✅ A queue can receive work from <strong>multiple workstreams</strong> (matching channel type)</li>
+                            <li>✅ A queue can have <strong>multiple agents</strong> as members</li>
+                            <li>✅ A queue can be a fallback queue for <strong>multiple workstreams</strong></li>
+                            <li>❌ A queue CANNOT receive work from workstreams of <strong>different channel types</strong></li>
+                            <li><strong>Example:</strong> "Premium Support Voice Queue" receives calls from both "Executive Support Workstream" and "VIP Customer Workstream"</li>
+                        </ul>
+                    </div>
+
+                    <div class="relationship-box">
+                        <h4>Workstream Perspective:</h4>
+                        <ul class="info-list">
+                            <li>✅ A workstream can have <strong>multiple channels</strong> of the same type attached</li>
+                            <li>✅ A workstream can route to <strong>multiple queues</strong></li>
+                            <li>✅ A workstream can use the same queue as <strong>other workstreams</strong></li>
+                            <li>✅ A voice workstream can have <strong>MULTIPLE phone numbers</strong> through multiple voice channels</li>
+                            <li>💡 Common use case: Multiple voice channels with different phone numbers for multilingual support</li>
+                        </ul>
+                    </div>
+
+                    <div class="relationship-box">
+                        <h4>Channel Perspective:</h4>
+                        <ul class="info-list">
+                            <li>📌 A channel belongs to <strong>ONE workstream</strong> (based on configuration flow)</li>
+                            <li>✅ Multiple channels of the same type can share one workstream</li>
+                            <li><strong>Example:</strong> 3 different chat widget channels → all in 1 messaging workstream</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>🔒 Type Constraints</h3>
+
+                    <div class="relationship-box">
+                        <h4>Workstream → Channel Type Constraint</h4>
+                        <ul class="info-list">
+                            <li>Messaging workstream → Messaging queues only</li>
+                            <li>Voice workstream → Voice queues only</li>
+                            <li>Record workstream → Record queues only</li>
+                            <li>❌ Cross-type routing NOT allowed</li>
+                            <li>✅ Multiple workstreams of the same type CAN share the same queue</li>
+                        </ul>
+                    </div>
+
+                    <div class="relationship-box">
+                        <h4>Workstream Type → Distribution Mode</h4>
+                        <ul class="info-list">
+                            <li>Voice: Push mode ONLY</li>
+                            <li>Messaging: Push or Pick mode</li>
+                            <li>Record: Push or Pick mode</li>
+                            <li>⚠️ Mode CANNOT be changed after creation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>📊 Relationship Summary Table</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>From</th>
+                                <th>To</th>
+                                <th>Cardinality</th>
+                                <th>Can Reverse?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Channel</td>
+                                <td>Workstream</td>
+                                <td>Many-to-One</td>
+                                <td>✅ Yes (One workstream → Many channels)</td>
+                            </tr>
+                            <tr>
+                                <td>Phone Number</td>
+                                <td>Voice Channel</td>
+                                <td>One-to-One</td>
+                                <td>❌ No (Each phone number → One voice channel only)</td>
+                            </tr>
+                            <tr>
+                                <td>Voice Channel</td>
+                                <td>Workstream</td>
+                                <td>Many-to-One</td>
+                                <td>✅ Yes (One workstream ← Many voice channels with different phone numbers)</td>
+                            </tr>
+                            <tr>
+                                <td>Workstream</td>
+                                <td>Queue</td>
+                                <td>One-to-Many</td>
+                                <td>✅ Yes (One queue ← Many workstreams)</td>
+                            </tr>
+                            <tr>
+                                <td>Queue</td>
+                                <td>Agent</td>
+                                <td>Many-to-Many</td>
+                                <td>✅ Yes (fully bidirectional)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Channels Section -->
+        <div class="section" id="section-channels">
+            <div class="section-header" onclick="toggleSection('channels')">
+                <h2>🌐 Channels <span class="badge">7 Types</span></h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Available Channel Types</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>📞 Voice Channel</h4>
+                            <ul class="info-list">
+                                <li>PSTN calling via Azure Communication Services</li>
+                                <li>Real-time AI transcription</li>
+                                <li>Sentiment analysis during calls</li>
+                                <li>Phone numbers (1:1 with workstream)</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>💬 Chat Channel</h4>
+                            <ul class="info-list">
+                                <li>Live chat support</li>
+                                <li>Web widget integration</li>
+                                <li>Persistent chat capability</li>
+                                <li>Context variables support</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>📱 SMS Channel</h4>
+                            <ul class="info-list">
+                                <li>Azure Communication Services</li>
+                                <li>Twilio integration</li>
+                                <li>Two-way messaging</li>
+                                <li>Representative affinity</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>📲 Social Channels</h4>
+                            <ul class="info-list">
+                                <li>Facebook Messenger</li>
+                                <li>WhatsApp (via Twilio)</li>
+                                <li>Apple Messages for Business</li>
+                                <li>LINE messaging</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>👔 Microsoft Teams</h4>
+                            <ul class="info-list">
+                                <li>Native Teams integration</li>
+                                <li>Collaboration features</li>
+                                <li>Expert swarming</li>
+                                <li>Consultation capabilities</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>🔧 Custom Messaging</h4>
+                            <ul class="info-list">
+                                <li>Custom channel development</li>
+                                <li>Direct Line Bot Framework</li>
+                                <li>Line-of-business channels</li>
+                                <li>Telegram and others</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>📋 Entity Records</h4>
+                            <ul class="info-list">
+                                <li>Cases routing</li>
+                                <li>Email management</li>
+                                <li>Standard business records</li>
+                                <li>Custom entities</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Implementation Pattern</h3>
+                    <div class="flow-step">
+                        <strong>Step 1:</strong> Establish account requirements with channel provider
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 2:</strong> Configure the workstream in admin center
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 3:</strong> Configure channel and attach to workstream
+                    </div>
+                    <div class="flow-step">
+                        <strong>Step 4:</strong> Exchange authentication data (tokens/secrets)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workstreams Section -->
+        <div class="section" id="section-workstreams">
+            <div class="section-header" onclick="toggleSection('workstreams')">
+                <h2>🔄 Workstreams <span class="badge">Core Component</span></h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Workstream Types</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Routes</th>
+                                <th>Distribution Modes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Messaging</strong></td>
+                                <td>Chat, SMS, Social channels, Microsoft Teams</td>
+                                <td>Push or Pick</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Voice</strong></td>
+                                <td>Phone calls (via phone number)</td>
+                                <td>Push only</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Record</strong></td>
+                                <td>Cases, Emails, Records</td>
+                                <td>Push or Pick</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3>Work Distribution Modes</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>🔔 Push Mode</h4>
+                            <ul class="info-list">
+                                <li>System automatically routes work items</li>
+                                <li>Agents receive message alerts</li>
+                                <li>Required for voice workstreams</li>
+                                <li>Supports bot integration</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>🎯 Pick Mode</h4>
+                            <ul class="info-list">
+                                <li>Agents manually select work items</li>
+                                <li>From "Open work items" list</li>
+                                <li>Agent-controlled workload</li>
+                                <li>Not available for voice</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="constraint-box">
+                        <strong>⚠️ Important:</strong> Work distribution mode CANNOT be changed after workstream creation!
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Configuration Options</h3>
+                    <ul class="info-list">
+                        <li><strong>Capacity settings:</strong> Unit-based or profile-based</li>
+                        <li><strong>Allowed presences:</strong> Define which statuses can receive work</li>
+                        <li><strong>Skill matching:</strong> Exact Match, Closest Match, or None</li>
+                        <li><strong>Session templates:</strong> Customize agent workspace</li>
+                        <li><strong>Agent notifications:</strong> Configure alert behavior</li>
+                        <li><strong>Context variables:</strong> Pass custom data through routing</li>
+                        <li><strong>Representative affinity:</strong> Same agent handles returning items</li>
+                        <li><strong>Auto-close after inactivity:</strong> Timeout settings</li>
+                        <li><strong>Block capacity for wrap up:</strong> Post-work processing time</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Numbers Section -->
+        <div class="section" id="section-phone">
+            <div class="section-header" onclick="toggleSection('phone')">
+                <h2>☎️ Phone Numbers</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Phone Number Configuration</h3>
+                    <div class="relationship-box">
+                        <strong>Relationship:</strong> Phone Number → Voice Channel → Workstream<br>
+                        • Each phone number is associated with exactly ONE voice channel<br>
+                        • Each voice channel belongs to ONE workstream<br>
+                        • ✅ One workstream CAN have MULTIPLE voice channels (each with different phone numbers)
+                    </div>
+
+                    <h4>Configuration Steps</h4>
+                    <div class="flow-step">
+                        <strong>Provision:</strong> Acquire phone numbers via Azure Communication Services
+                    </div>
+                    <div class="flow-step">
+                        <strong>Enable:</strong> Enable inbound calls on the phone numbers
+                    </div>
+                    <div class="flow-step">
+                        <strong>Create Voice Channels:</strong> In the workstream, create multiple voice channels (one per phone number)
+                    </div>
+                    <div class="flow-step">
+                        <strong>Associate:</strong> Link each phone number to its respective voice channel in the workstream
+                    </div>
+                    <div class="flow-step">
+                        <strong>Configure:</strong> Set up language settings and voice profiles for each channel
+                    </div>
+
+                    <h4>Multiple Phone Numbers per Workstream</h4>
+                    <p><strong>Use Case:</strong> Multilingual Support</p>
+                    <ul class="info-list">
+                        <li>Create multiple voice channels within one workstream</li>
+                        <li>Each voice channel has a different phone number</li>
+                        <li>Each voice channel configured with a different primary language</li>
+                        <li><strong>Example:</strong> +1-555-0100 (Spanish), +1-555-0200 (German), +1-555-0300 (French) all in one workstream</li>
+                    </ul>
+
+                    <h4>Single Phone Number - Multiple Languages</h4>
+                    <p>Alternatively, one phone number can support multiple languages with:</p>
+                    <ul class="info-list">
+                        <li>Primary language (first greeting)</li>
+                        <li>Additional language options for customers</li>
+                        <li>Hold and wait music configuration per language</li>
+                        <li>Voice profile settings (voice, style, speed, pitch) per language</li>
+                    </ul>
+
+                    <div class="constraint-box">
+                        <strong>⚠️ Constraints:</strong>
+                        <ul class="info-list">
+                            <li>Only numbers with inbound calls enabled are available</li>
+                            <li>Each phone number can only be in ONE voice channel</li>
+                            <li>Cannot associate number already linked to another workstream</li>
+                            <li>Anonymous calls only supported via Azure Direct Routing</li>
+                            <li>Cannot edit or upgrade phone number features after connecting to workstream</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Routing Rules Section -->
+        <div class="section" id="section-routing">
+            <div class="section-header" onclick="toggleSection('routing')">
+                <h2>📍 Routing Rules</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Rule Types</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>🏷️ Classification Rules</h4>
+                            <ul class="info-list">
+                                <li>Categorize incoming work items</li>
+                                <li>Add context and metadata</li>
+                                <li>Evaluate customer parameters</li>
+                                <li>Enable intelligent routing decisions</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4>🎯 Route-to-Queue Rules</h4>
+                            <ul class="info-list">
+                                <li>Condition-based routing logic</li>
+                                <li>Priority-based assignments</li>
+                                <li>Skill-based matching</li>
+                                <li>Multiple rules per workstream</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Fallback Queue</h3>
+                    <div class="highlight">
+                        <p><strong>Safety Net Mechanism:</strong> Every workstream must have a fallback queue that receives work items when:</p>
+                        <ul class="info-list">
+                            <li>No route-to-queue rules match</li>
+                            <li>Classification errors occur</li>
+                            <li>Route-to-queue rule errors occur</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Default Routing Behavior</h3>
+                    <p>For simple routing scenarios, no custom rules are required:</p>
+                    <div class="relationship-box">
+                        <strong>Voice:</strong> All incoming calls → Default voice queue → Round robin assignment<br>
+                        <strong>Messaging:</strong> All conversations → Default messaging queue → Round robin assignment<br>
+                        <strong>Records:</strong> All records → Default entity queue → Round robin assignment
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Queues Section -->
+        <div class="section" id="section-queues">
+            <div class="section-header" onclick="toggleSection('queues')">
+                <h2>📥 Queues</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Queue Types</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Queue Type</th>
+                                <th>Workable Items</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Messaging Queue</strong></td>
+                                <td>Chat, SMS, Social messages</td>
+                                <td>Route live conversations</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Voice Queue</strong></td>
+                                <td>Inbound/outbound calls</td>
+                                <td>Route phone calls</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Record Queue</strong></td>
+                                <td>Cases, emails, records</td>
+                                <td>Route entity records</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="constraint-box">
+                        <strong>⚠️ Type Constraint:</strong> Queue type must match workstream channel type. Cross-type routing is NOT allowed. For example, chat conversations can only be transferred to messaging queues.
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Assignment Methods</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>⚡ Highest Capacity</h4>
+                            <p>Routes to agent with most available capacity, considering skills and presence</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🔄 Round Robin</h4>
+                            <p>Rotates assignments based on queue membership order, updates based on assignment history</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>😴 Least Active</h4>
+                            <p>Routes to agent who has been least active recently</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>⚙️ Custom Assignment</h4>
+                            <p>Build custom rules using rulesets for priority, severity, and capacity</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Queue Configuration</h3>
+                    <ul class="info-list">
+                        <li><strong>Queue Priority:</strong> Numeric priority (lower number = higher priority)</li>
+                        <li><strong>Operating Hours:</strong> Schedules and time zones</li>
+                        <li><strong>Overflow Management:</strong> Redirect work when thresholds exceeded</li>
+                        <li><strong>Agent Membership:</strong> Assign agents to queues</li>
+                        <li><strong>Default Queues:</strong> System-defined with all agents included</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Default Queues (System-Defined)</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>Default Messaging Queue</h4>
+                            <p>All agents included by default for chat, SMS, and Teams</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>Default Voice Queue</h4>
+                            <p>All agents included by default for phone calls</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>Default Entity Queue</h4>
+                            <p>All agents included by default for cases and records</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Section -->
+        <div class="section" id="section-agents">
+            <div class="section-header" onclick="toggleSection('agents')">
+                <h2>👥 Agents / Representatives</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Agent Configuration</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>📋 Queue Assignments</h4>
+                            <p>Agents can be members of multiple queues. Work is distributed based on queue membership and availability.</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>⚡ Capacity Profile</h4>
+                            <p>Defines workload capacity - unit-based or profile-based. Controls how many concurrent work items an agent can handle.</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🎯 Skills</h4>
+                            <p>Skill-based routing matches work items to agents with required skills using exact or closest match algorithms.</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🟢 Presence Status</h4>
+                            <p>Available, Busy, Away, Do Not Disturb, etc. Only allowed presences receive work assignments.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Agent Experience</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mode</th>
+                                <th>Experience</th>
+                                <th>Use Case</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Push Mode</strong></td>
+                                <td>Receives auto-assigned work with notifications</td>
+                                <td>Voice, urgent messaging, high-volume</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pick Mode</strong></td>
+                                <td>Manually selects from "Open work items"</td>
+                                <td>Cases, emails, specialized work</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="subsection">
+                    <h3>Advanced Features</h3>
+                    <ul class="info-list">
+                        <li><strong>Representative Affinity:</strong> Same agent handles returning work items (enabled by default for persistent channels)</li>
+                        <li><strong>Wrap-up Time:</strong> Capacity blocked after completing work (configurable: always, never, or custom duration)</li>
+                        <li><strong>Channel-specific Capacity:</strong> Different capacity limits per channel type</li>
+                        <li><strong>Multi-channel Support:</strong> Handle voice, chat, and records simultaneously based on capacity</li>
+                    </ul>
+                </div>
+
+                <div class="subsection">
+                    <h3>Assignment Algorithm Factors</h3>
+                    <div class="diagram">
+                        <pre>
+Assignment Decision Considers:
+    │
+    ├─ Agent Presence (Available, Busy, DND)
+    │
+    ├─ Agent Capacity (current workload vs. max capacity)
+    │
+    ├─ Agent Skills (if skill matching enabled)
+    │
+    ├─ Queue Membership (agent must be in the queue)
+    │
+    ├─ Assignment Method (Highest Capacity, Round Robin, etc.)
+    │
+    └─ Priority & Routing Rules (from workstream configuration)
+                        </pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Routing Flow Example -->
+        <div class="section" id="section-flow">
+            <div class="section-header" onclick="toggleSection('flow')">
+                <h2>🔄 Routing Flow Example</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Complete Call Routing Journey</h3>
+                    <div class="flow-step">
+                        <strong>Customer Action:</strong> Customer calls +1-555-0100
+                    </div>
+                    <div class="flow-step">
+                        <strong>Phone Number Lookup:</strong> Phone Number (+1-555-0100) associated with "Premium Support Voice Workstream"
+                    </div>
+                    <div class="flow-step">
+                        <strong>Classification:</strong> Classification Rules evaluate call context (customer type, product, history)
+                    </div>
+                    <div class="flow-step">
+                        <strong>Route-to-Queue Decision:</strong><br>
+                        • Rule 1: If customer = "Premium" → "VIP Voice Queue"<br>
+                        • Rule 2: If product = "Product A" → "Product A Voice Queue"<br>
+                        • No match → "Fallback Voice Queue"
+                    </div>
+                    <div class="flow-step">
+                        <strong>Queue Processing:</strong> Queue receives call and applies assignment method (e.g., Highest Capacity)
+                    </div>
+                    <div class="flow-step">
+                        <strong>Agent Evaluation:</strong> Assignment algorithm evaluates:<br>
+                        • Agent presence (Available, Busy, DND)<br>
+                        • Agent capacity (current workload vs. max)<br>
+                        • Agent skills (if skill matching enabled)<br>
+                        • Queue membership
+                    </div>
+                    <div class="flow-step">
+                        <strong>Assignment:</strong> Call assigned to Agent with highest capacity + matching skills + allowed presence
+                    </div>
+                    <div class="flow-step">
+                        <strong>Agent Notification:</strong> Agent receives notification and call appears in workspace with full context
+                    </div>
+                    <div class="flow-step">
+                        <strong>Post-Call:</strong> After call ends, agent enters wrap-up time (capacity blocked for configured duration)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Features Section -->
+        <div class="section" id="section-ai">
+            <div class="section-header" onclick="toggleSection('ai')">
+                <h2>🤖 AI & Intelligence Features</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3>Unified Intelligent Routing (AI-Infused)</h3>
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>😊 Sentiment Analysis</h4>
+                            <p>Real-time emotion detection to route frustrated customers to experienced agents</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>📊 Predicted Effort</h4>
+                            <p>AI estimates complexity to match work with agent expertise</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🎯 Skills Matching</h4>
+                            <p>Intelligent matching of required skills to agent capabilities</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>🟢 Presence Awareness</h4>
+                            <p>Real-time availability tracking for optimal assignment</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>⚡ Capacity Optimization</h4>
+                            <p>Dynamic workload balancing across agent pool</p>
+                        </div>
+                        <div class="info-card">
+                            <h4>👤 Customer Parameters</h4>
+                            <p>Historical data and customer context evaluation</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Agent Copilot Features</h3>
+                    <ul class="info-list">
+                        <li><strong>Knowledge Chat/Search:</strong> Q&A format knowledge retrieval, not keyword-based</li>
+                        <li><strong>Agent Prompting:</strong> AI-powered suggestions and next-best-action recommendations</li>
+                        <li><strong>Email Draft Generation:</strong> Automated response drafting based on context</li>
+                        <li><strong>Case Summary Generation:</strong> AI-generated case summaries for quick context</li>
+                        <li><strong>Conversation Summaries:</strong> Automatic conversation recap and key points extraction</li>
+                        <li><strong>Live Call Transcription:</strong> Real-time transcription during voice calls</li>
+                        <li><strong>Call Sentiment Analysis:</strong> Continuous sentiment monitoring during conversations</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supporting Components -->
+        <div class="section" id="section-supporting">
+            <div class="section-header" onclick="toggleSection('supporting')">
+                <h2>🔧 Supporting Components</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4>🤖 Bots</h4>
+                        <ul class="info-list">
+                            <li>Connected from Copilot Studio</li>
+                            <li>Push-based workstreams only</li>
+                            <li>Pre-conversation automation</li>
+                            <li>Handoff to human agents</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h4>📄 Templates</h4>
+                        <ul class="info-list">
+                            <li>Session templates</li>
+                            <li>Notification templates</li>
+                            <li>Consistent agent experience</li>
+                            <li>Customizable layouts</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h4>🔢 Context Variables</h4>
+                        <ul class="info-list">
+                            <li>Custom data passing</li>
+                            <li>Through routing pipeline</li>
+                            <li>Available to agents</li>
+                            <li>Integration support</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h4>🕐 Operating Hours</h4>
+                        <ul class="info-list">
+                            <li>Queue-based schedules</li>
+                            <li>Time zone support</li>
+                            <li>Business hours routing</li>
+                            <li>After-hours handling</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h4>📊 Capacity Profiles</h4>
+                        <ul class="info-list">
+                            <li>Define agent workload limits</li>
+                            <li>Channel-specific capacity</li>
+                            <li>Unit or profile-based</li>
+                            <li>Dynamic adjustment</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h4>💡 Smart Assist</h4>
+                        <ul class="info-list">
+                            <li>AI-powered suggestions</li>
+                            <li>Knowledge article recommendations</li>
+                            <li>Quick replies library</li>
+                            <li>Real-time assistance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Constraints Section -->
+        <div class="section" id="section-constraints">
+            <div class="section-header" onclick="toggleSection('constraints')">
+                <h2>⚠️ Important Constraints</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <div class="constraint-box">
+                        ✓ Unified routing must be enabled for Record workstreams
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Work distribution mode (Push/Pick) CANNOT be changed after workstream creation
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Voice workstreams support PUSH mode ONLY
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Phone numbers can only be associated with ONE workstream at a time
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Queues and workstreams must have matching channel types
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Cross-queue transfers only allowed within same channel type
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Bots receive conversations only in push-based workstreams
+                    </div>
+                    <div class="constraint-box">
+                        ✓ Representative affinity only applies to push-type work distribution
+                    </div>
+                    <div class="constraint-box">
+                        ✓ System Administrator role OR secure column permissions required for configuration
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Hierarchy -->
+        <div class="section" id="section-config">
+            <div class="section-header" onclick="toggleSection('config')">
+                <h2>📐 Configuration Hierarchy</h2>
+                <span class="section-icon">▼</span>
+            </div>
+            <div class="section-content">
+                <div class="diagram">
+                    <pre>
+Organization/Environment
+    │
+    ├─ Channels (provision & configure)
+    │   ├─ Voice Channel
+    │   │   └─ Phone Numbers (acquire via Azure Communication Services)
+    │   ├─ Chat Channel
+    │   ├─ SMS Channel (Azure Communication Services or Twilio)
+    │   ├─ Social Channels (Facebook, WhatsApp, Apple Messages, LINE)
+    │   ├─ Microsoft Teams
+    │   └─ Custom Messaging Channels
+    │
+    ├─ Workstreams (create & configure)
+    │   ├─ Type selection (Messaging, Voice, Record)
+    │   ├─ Channel association (attach channels)
+    │   ├─ Work distribution mode (Push or Pick)
+    │   ├─ Capacity settings
+    │   ├─ Allowed presences
+    │   ├─ Skill matching algorithm
+    │   ├─ Classification rules
+    │   ├─ Route-to-queue rules
+    │   └─ Fallback queue
+    │
+    ├─ Queues (create & configure)
+    │   ├─ Queue type (Messaging, Voice, Record)
+    │   ├─ Assignment method
+    │   ├─ Priority
+    │   ├─ Operating hours
+    │   ├─ Overflow management
+    │   └─ Agent membership
+    │
+    ├─ Agents/Representatives (configure)
+    │   ├─ Queue assignments
+    │   ├─ Capacity profile
+    │   ├─ Skills
+    │   └─ Presence management
+    │
+    └─ Supporting Components
+        ├─ Capacity Profiles
+        ├─ Session Templates
+        ├─ Notification Templates
+        ├─ Context Variables
+        ├─ Operating Hours
+        ├─ Bots/Agents (Copilot Studio)
+        └─ Smart Assist configurations
+                    </pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer with Sources -->
+        <div class="footer">
+            <h3>📚 Documentation Sources</h3>
+            <p>All information sourced from official Microsoft Learn documentation:</p>
+            <ul class="sources">
+                <li>🔗 <a href="https://learn.microsoft.com/en-us/dynamics365/customer-service/administer/create-workstreams" target="_blank">Create and manage workstreams</a></li>
+                <li>🔗 <a href="https://learn.microsoft.com/en-us/dynamics365/customer-service/administer/queues-omnichannel" target="_blank">Create and manage queues for unified routing</a></li>
+                <li>🔗 <a href="https://learn.microsoft.com/en-us/dynamics365/customer-service/administer/voice-channel-inbound-calling" target="_blank">Set up inbound calling for the voice channel</a></li>
+                <li>🔗 <a href="https://learn.microsoft.com/en-us/dynamics365/customer-service/use/channels" target="_blank">Overview of channels</a></li>
+                <li>🔗 <a href="https://learn.microsoft.com/en-us/dynamics365/guidance/reference-architectures/contact-center-dynamics-365-customer-service-enterprise" target="_blank">Contact center architecture reference</a></li>
+            </ul>
+            <p style="margin-top: 2rem; color: var(--text-secondary);">
+                <small>Created with information from Microsoft Dynamics 365 Contact Center documentation • Last updated: February 2026</small>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function toggleSection(sectionId) {
+            const section = document.getElementById('section-' + sectionId);
+            section.classList.toggle('expanded');
+
+            // Smooth scroll animation on expand
+            if (section.classList.contains('expanded')) {
+                setTimeout(() => {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 100);
+            }
+        }
+
+        function expandAll() {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.add('expanded'));
+        }
+
+        function collapseAll() {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('expanded'));
+        }
+
+        // Fluent Design Reveal Effect
+        document.addEventListener('DOMContentLoaded', function() {
+            const sections = document.querySelectorAll('.section');
+            const cards = document.querySelectorAll('.info-card');
+
+            function addRevealEffect(element) {
+                element.addEventListener('mousemove', function(e) {
+                    const rect = element.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+                    element.style.setProperty('--mouse-x', x + '%');
+                    element.style.setProperty('--mouse-y', y + '%');
+                });
+            }
+
+            sections.forEach(addRevealEffect);
+            cards.forEach(addRevealEffect);
+        });
+
+        function searchContent() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const sections = document.querySelectorAll('.section');
+
+            sections.forEach(section => {
+                const content = section.textContent.toLowerCase();
+                if (content.includes(searchTerm) || searchTerm === '') {
+                    section.style.display = 'block';
+                    if (searchTerm !== '') {
+                        section.classList.add('expanded');
+                    }
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Smooth scroll animation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + E: Expand all
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                expandAll();
+            }
+            // Ctrl/Cmd + C: Collapse all
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+                e.preventDefault();
+                collapseAll();
+            }
+            // Ctrl/Cmd + F: Focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+        });
+    </script>
+</body>
+</html>
